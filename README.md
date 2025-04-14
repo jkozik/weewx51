@@ -12,4 +12,4 @@ Receiving objects: 100% (3/3), done.
 ```
 # References
 - [Weewx5.1 Install using Pip](https://weewx.com/docs/5.1/quickstarts/pip/)
-- 
+- [weewx-docker](https://github.com/felddy/weewx-docker) repository by [felddy](https://github.com/felddy)
