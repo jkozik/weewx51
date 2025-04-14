@@ -33,6 +33,7 @@ Console logging configuration has been appended to /data/weewx.conf.
 Please review and update /data/weewx.conf as needed, then restart the container.
 jkozik@weewx174:~/weewx51$
 ```
+
 In the data directory a series of configuration files are created.  Key file weewx.conf.  
 This file is configurated to collect weather data from a Simulator. 
 ```
@@ -125,6 +126,8 @@ Saving configuration file /data/weewx.conf
 Saved old configuration file as /data/weewx.conf.20250413194149
 jkozik@weewx174:~/weewx51$
 ```
+Note the docker compose command.  If it has parameters after the weewx parameter, the underlying container runs the command weectl.  
+
 Verify that references to Vantage are found in the weewx.conf
 ```
 jkozik@weewx174:~/weewx51$ cd data
@@ -136,6 +139,172 @@ jkozik@weewx174:~/weewx51/data$ grep Vantage weewx.conf
     # Vantage model Type: 1 = Vantage Pro; 2 = Vantage Pro2
 jkozik@weewx174:~/weewx51/data$
 ```
+## Verify weewx server can access Davis Weather Envoy
+The Davis Weather Envoy is a wireless receiver that talks to the Vantage Pro2 weather station.  My Envoy was previously programmed back when the device used a USB connection.  
+
+Verify that the weewx server can access the contents of the Davis Weather Envoy:
+```
+jkozik@weewx174:~/weewx51/data$ docker compose run --rm weewx device --info
+Using configuration file /data/weewx.conf
+Using driver weewx.drivers.vantage.
+Using Vantage driver version 3.6.2 (weewx.drivers.vantage)
+Unable to wake up console... sleeping
+Unable to wake up console... retrying
+Querying...
+Davis Vantage EEPROM settings:
+
+    CONSOLE TYPE:                   Vantage Pro2
+
+    CONSOLE FIRMWARE:
+      Date:                         Dec 30 2008
+      Version:                      1.82
+
+    CONSOLE SETTINGS:
+      Archive interval:             600 (seconds)
+      Altitude:                     781 (foot)
+      Wind cup type:                large
+      Rain bucket type:             0.01 inches
+      Rain year start:              1
+      Onboard time:                 2025-04-13 20:04:24
+
+    CONSOLE DISPLAY UNITS:
+      Barometer:                    inHg
+      Temperature:                  degree_F
+      Rain:                         inch
+      Wind:                         mile_per_hour
+
+    CONSOLE STATION INFO:
+      Latitude (onboard):           +41.8
+      Longitude (onboard):          -88.1
+      Use manual or auto DST?       AUTO
+      DST setting:                  N/A
+      Use GMT offset or zone code?  ZONE_CODE
+      Time zone code:               6
+      GMT offset:                   N/A
+      Temperature logging:          AVERAGE
+
+    TRANSMITTERS:
+      Channel   Receive   Retransmit  Repeater    Type
+         1      active        Y         NONE      iss
+         2      inactive      Y         NONE      (N/A)
+         3      inactive      Y         NONE      (N/A)
+         4      inactive      Y         NONE      (N/A)
+         5      inactive      Y         NONE      (N/A)
+         6      inactive      Y         NONE      (N/A)
+         7      inactive      Y         NONE      (N/A)
+         8      inactive      Y         NONE      (N/A)
+
+    RECEPTION STATS:
+      Total packets received:       4618
+      Total packets missed:         144
+      Number of resynchronizations: 2
+      Longest good stretch:         214
+      Number of CRC errors:         30
+
+    BAROMETER CALIBRATION DATA:
+      Current barometer reading:    29.679 inHg
+      Altitude:                     781 feet
+      Dew point:                    42 F
+      Virtual temperature:          56 F
+      Humidity correction factor:   1.8
+      Correction ratio:             1.029
+      Correction constant:          +0.000 inHg
+      Gain:                         0.000
+      Offset:                       18.000
+
+    OFFSETS:
+      Wind direction:               -45 deg
+      Inside Temperature:           +0.0 F
+      Inside Humidity:              +0 %
+      Outside Temperature:          +0.0 F
+      Outside Humidity:             +0 %
+
+jkozik@weewx174:~/weewx51/data$
+```
+Note the onboard time is very accurate.  I didnt set this.  I think the WifiLogger2 interface sets the time.
+
+## Start the weewx daemon
+Start the weewx server for real.  Verify the basics are working.
+```
+jkozik@weewx174:~/weewx51$ docker compose up -d
+[+] Running 2/2
+ ✔ Container nginx          Started                                                                                    
+ ✔ Container weewx-weewx-1  Started                                                                                    
+jkozik@weewx174:~/weewx51$
+```
+Check the log files to verify that station data is being collected
+```jkozik@weewx174:~/weewx51$ docker compose logs -f
+nginx    | /docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration
+nginx    | /docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
+nginx    | /docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
+nginx    | 10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
+nginx    | 10-listen-on-ipv6-by-default.sh: info: Enabled listen on IPv6 in /etc/nginx/conf.d/default.conf
+nginx    | /docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
+nginx    | /docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
+nginx    | /docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
+nginx    | /docker-entrypoint.sh: Configuration complete; ready for start up
+nginx    | 2025/04/14 01:57:37 [notice] 1#1: using the "epoll" event method
+nginx    | 2025/04/14 01:57:37 [notice] 1#1: nginx/1.27.4
+nginx    | 2025/04/14 01:57:37 [notice] 1#1: built by gcc 12.2.0 (Debian 12.2.0-14)
+nginx    | 2025/04/14 01:57:37 [notice] 1#1: OS: Linux 6.8.0-57-generic
+nginx    | 2025/04/14 01:57:37 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+nginx    | 2025/04/14 01:57:37 [notice] 1#1: start worker processes
+nginx    | 2025/04/14 01:57:37 [notice] 1#1: start worker process 28
+nginx    | 2025/04/14 01:57:51 [error] 28#28: *1 open() "/usr/share/nginx/html/dayET.png" failed (2: No such file or directory), client: 192.168.100.121, server: localhost, request: "GET /dayET.png HTTP/1.1", host: "weewx.kozik.net"
+nginx    | 192.168.100.121 - - [14/Apr/2025:01:57:51 +0000] "GET /dayET.png HTTP/1.1" 404 153 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15 (Applebot/0.1; +http://www.apple.com/go/applebot)" "17.241.75.174"
+nginx    | 2025/04/14 01:58:14 [error] 28#28: *2 directory index of "/usr/share/nginx/html/" is forbidden, client: 192.168.100.121, server: localhost, request: "GET / HTTP/1.1", host: "weewx.kozik.net"
+nginx    | 192.168.100.121 - - [14/Apr/2025:01:58:14 +0000] "GET / HTTP/1.1" 403 153 "-" "Zabbix" "192.168.100.163"
+weewx-1  | Using configuration file /data/weewx.conf
+weewx-1  | 2025-04-13 20:57:37 weewxd[7]: INFO weewxd: Initializing weewxd version 5.1.0
+weewx-1  | 2025-04-13 20:57:37 weewxd[7]: INFO weewxd: Command line: /opt/venv/bin/weewxd --config /data/weewx.conf
+weewx-1  | 2025-04-13 20:57:37 weewxd[7]: INFO weewxd: Using Python: 3.13.0 (main, Dec  3 2024, 02:26:48) [GCC 12.2.0]
+weewx-1  | 2025-04-13 20:57:37 weewxd[7]: INFO weewxd: Located at:   /opt/venv/bin/python
+weewx-1  | 2025-04-13 20:57:37 weewxd[7]: INFO weewxd: Platform:     Linux-6.8.0-57-generic-x86_64-with-glibc2.36
+weewx-1  | 2025-04-13 20:57:37 weewxd[7]: INFO weewxd: Locale:       'LC_CTYPE=C.UTF-8;LC_NUMERIC=C;LC_TIME=C;LC_COLLATE=C;LC_MONETARY=C;LC_MESSAGES=C;LC_PAPER=C;LC_NAME=C;LC_ADDRESS=C;LC_TELEPHONE=C;LC_MEASUREMENT=C;LC_IDENTIFICATION=C'
+weewx-1  | 2025-04-13 20:57:37 weewxd[7]: INFO weewxd: Entry path:   /opt/venv/bin/weewxd
+weewx-1  | 2025-04-13 20:57:37 weewxd[7]: INFO weewxd: WEEWX_ROOT:   /data
+weewx-1  | 2025-04-13 20:57:37 weewxd[7]: INFO weewxd: Config file:  /data/weewx.conf
+weewx-1  | 2025-04-13 20:57:37 weewxd[7]: INFO weewxd: User module:  /data/bin/user
+weewx-1  | 2025-04-13 20:57:37 weewxd[7]: INFO weewxd: Debug:        0
+weewx-1  | 2025-04-13 20:57:37 weewxd[7]: INFO weewxd: User:         weewx
+weewx-1  | 2025-04-13 20:57:37 weewxd[7]: INFO weewxd: Group:        weewx
+weewx-1  | 2025-04-13 20:57:37 weewxd[7]: INFO weewxd: Groups:       weewx
+weewx-1  | 2025-04-13 20:57:37 weewxd[7]: INFO weewx.engine: Loading station type Vantage (weewx.drivers.vantage)
+weewx-1  | 2025-04-13 20:57:42 weewxd[7]: INFO weewx.engine: StdConvert target unit is 0x1
+weewx-1  | 2025-04-13 20:57:42 weewxd[7]: INFO weewx.wxservices: StdWXCalculate will use data binding wx_binding
+weewx-1  | 2025-04-13 20:57:42 weewxd[7]: INFO weewx.manager: Created and initialized table 'archive' in database 'weewx.sdb'
+weewx-1  | 2025-04-13 20:57:42 weewxd[7]: INFO weewx.manager: Created daily summary tables
+weewx-1  | 2025-04-13 20:57:42 weewxd[7]: INFO weewx.engine: Archive will use data binding wx_binding
+weewx-1  | 2025-04-13 20:57:42 weewxd[7]: INFO weewx.engine: Record generation will be attempted in 'hardware'
+weewx-1  | 2025-04-13 20:57:42 weewxd[7]: INFO weewx.engine: The archive interval in the configuration file (300) does not match the station hardware interval (600).
+weewx-1  | 2025-04-13 20:57:42 weewxd[7]: INFO weewx.engine: Using archive interval of 600 seconds (specified by hardware)
+weewx-1  | 2025-04-13 20:57:42 weewxd[7]: INFO weewx.restx: StationRegistry: Registration not requested.
+weewx-1  | 2025-04-13 20:57:42 weewxd[7]: INFO weewx.restx: Wunderground: Posting not enabled.
+weewx-1  | 2025-04-13 20:57:42 weewxd[7]: INFO weewx.restx: PWSweather: Posting not enabled.
+weewx-1  | 2025-04-13 20:57:42 weewxd[7]: INFO weewx.restx: CWOP: Posting not enabled.
+weewx-1  | 2025-04-13 20:57:42 weewxd[7]: INFO weewx.restx: WOW: Posting not enabled.
+weewx-1  | 2025-04-13 20:57:42 weewxd[7]: INFO weewx.restx: AWEKAS: Posting not enabled.
+weewx-1  | 2025-04-13 20:57:42 weewxd[7]: INFO weewx.engine: 'pyephem' detected, extended almanac data is available
+weewx-1  | 2025-04-13 20:57:42 weewxd[7]: INFO weewxd: Starting up weewx version 5.1.0
+weewx-1  | 2025-04-13 20:57:44 weewxd[7]: INFO weewx.engine: Clock error is -0.85 seconds (positive is fast)
+weewx-1  | 2025-04-13 20:57:44 weewxd[7]: INFO weewx.engine: Using binding 'wx_binding' to database 'weewx.sdb'
+weewx-1  | 2025-04-13 20:57:44 weewxd[7]: INFO weewx.manager: Starting backfill of daily summaries
+weewx-1  | 2025-04-13 20:57:44 weewxd[7]: INFO weewx.manager: Empty database
+weewx-1  | 2025-04-13 20:57:47 weewxd[7]: INFO weewx.manager: Added record 2025-04-03 09:10:00 CDT (1743689400) to database 'weewx.sdb'
+weewx-1  | 2025-04-13 20:57:47 weewxd[7]: INFO weewx.manager: Added record 2025-04-03 09:10:00 CDT (1743689400) to daily summary in 'weewx.sdb'
+weewx-1  | REC:    2025-04-03 09:10:00 CDT (1743689400) 'altimeter': 'None', 'appTemp': '43.91764913173297', 'barometer': '29.994', 'cloudbase': '3062.0026879723287', 'dateTime': '1743689400', 'dewpoint': '37.663588172921756', 'ET': '0.0', 'heatindex': '45.366', 'highOutTemp': '47.9', 'highRadiation': '264.0', 'highUV': '1.3', 'humidex': '47.7', 'inDewpoint': '46.85541453653479', 'inHumidity': '38.0', 'inTemp': '74.1', 'interval': '10', 'lowOutTemp': '47.5', 'maxSolarRad': '412.64327154938843', 'outHumidity': '68.0', 'outTemp': '47.7', 'pressure': 'None', 'radiation': '241.0', 'rain': '0.0', 'rainRate': '0.0', 'rxCheckPercent': '95.66666666666666', 'usUnits': '1', 'UV': '1.3', 'wind_samples': '224.0', 'windchill': '47.7', 'windDir': '135.0', 'windGust': '7.0', 'windGustDir': '67.5', 'windrun': '0.3333333333333333', 'windSpeed': '2.0'
+weewx-1  | 2025-04-13 20:57:47 weewxd[7]: INFO weewx.manager: Added record 2025-04-03 11:30:00 CDT (1743697800) to database 'weewx.sdb'
+weewx-1  | 2025-04-13 20:57:47 weewxd[7]: INFO weewx.manager: Added record 2025-04-03 11:30:00 CDT (1743697800) to daily summary in 'weewx.sdb'
+weewx-1  | REC:    2025-04-03 11:30:00 CDT (1743697800) 'altimeter': 'None', 'appTemp': '43.28159465884046', 'barometer': '29.997', 'cloudbase': '2971.6654927212844', 'dateTime': '1743697800', 'dewpoint': '37.46107183202635', 'ET': '0.0', 'heatindex': '44.753', 'highOutTemp': '47.5', 'highRadiation': '221.0', 'highUV': '1.2', 'humidex': '47.1', 'inDewpoint': '47.36744676304085', 'inHumidity': '39.0', 'inTemp': '73.9', 'interval': '10', 'lowOutTemp': '46.7', 'maxSolarRad': '775.9227414349572', 'outHumidity': '69.0', 'outTemp': '47.1', 'pressure': 'None', 'radiation': '196.0', 'rain': '0.0', 'rainRate': '0.0', 'rxCheckPercent': '100.0', 'usUnits': '1', 'UV': '1.1', 'wind_samples': '344.0', 'windchill': '47.1', 'windDir': '135.0', 'windGust': '7.0', 'windGustDir': '67.5', 'windrun': '0.3333333333333333', 'windSpeed': '2.0'
+weewx-1  | 2025-04-13 20:57:47 weewxd[7]: INFO weewx.manager: Added record 2025-04-03 11:40:00 CDT (1743698400) to database 'weewx.sdb'
+weewx-1  | 2025-04-13 20:57:47 weewxd[7]: INFO weewx.manager: Added record 2025-04-03 11:40:00 CDT (1743698400) to daily summary in 'weewx.sdb'
+weewx-1  | REC:    2025-04-03 11:40:00 CDT (1743698400) 'altimeter': 'None', 'appTemp': '42.18650841111375', 'barometer': '29.997', 'cloudbase': '3051.845143159496', 'dateTime': '1743698400', 'dewpoint': '36.70828137009822', 'ET': '0.0', 'heatindex': '44.266000000000005', 'highOutTemp': '46.8', 'highRadiation': '227.0', 'highUV': '1.2', 'humidex': '46.7', 'inDewpoint': '47.278422897872616', 'inHumidity': '39.0', 'inTemp': '73.8', 'interval': '10', 'lowOutTemp': '46.5', 'maxSolarRad': '790.6752660794824', 'outHumidity': '68.0', 'outTemp': '46.7', 'pressure': 'None', 'radiation': '215.0', 'rain': '0.0', 'rainRate': '0.0', 'rxCheckPercent': '99.08333333333333', 'usUnits': '1', 'UV': '1.2', 'wind_samples': '232.0', 'windchill': '46.7', 'windDir': '202.5', 'windGust': '12.0', 'windGustDir': '202.5', 'windrun': '0.5', 'windSpeed': '3.0'
+weewx-1  | 2025-04-13 20:57:48 weewxd[7]: INFO weewx.manager: Added record 2025-04-03 11:50:00 CDT (1743699000) to database 'weewx.sdb'
+weewx-1  | 2025-04-13 20:57:48 weewxd[7]: INFO weewx.manager: Added record 2025-04-03 11:50:00 CDT (1743699000) to daily summary in 'weewx.sdb'
+```
+Note: the weewx daemon is running in a docker container.  There are actualy two of them.  There's another container that is running an nginx web server.  Weewx will periodically generate a web page.  Nginx will render it on port 80.
+
+
 
 
 
