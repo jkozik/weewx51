@@ -231,6 +231,10 @@ jkozik@weewx174:~/weewx51$ docker compose up -d
  ✔ Container nginx          Started                                                                                    
  ✔ Container weewx-weewx-1  Started                                                                                    
 jkozik@weewx174:~/weewx51$
+jkozik@weewx174:~/weewx51$ docker compose ps
+NAME            IMAGE              COMMAND                  SERVICE   CREATED          STATUS          PORTS
+nginx           nginx              "/docker-entrypoint.…"   nginx     26 minutes ago   Up 26 minutes   0.0.0.0:80->80/tcp, [::]:80->80/tcp
+weewx-weewx-1   felddy/weewx:5.1   "./entrypoint.sh"        weewx     26 minutes ago   Up 26 minutes
 ```
 Check the log files to verify that station data is being collected
 ```jkozik@weewx174:~/weewx51$ docker compose logs -f
@@ -304,8 +308,105 @@ weewx-1  | 2025-04-13 20:57:48 weewxd[7]: INFO weewx.manager: Added record 2025-
 ```
 Note: the weewx daemon is running in a docker container.  There are actualy two of them.  There's another container that is running an nginx web server.  Weewx will periodically generate a web page.  Nginx will render it on port 80.
 
+Take a look at the log files.  When the reportengine generates some content, verify that the public_html directory has been filled. (It took me about 15 minutes).
+
+```
+jkozik@weewx174:~/weewx51/data/public_html$ docker compose logs -f
+.-=-=-=-=-=...
+weewx-1  | LOOP:   2025-04-13 21:40:20 CDT (1744598420) 'altimeter': '29.688021688751935', 'appTemp': '57.47425693546715', 'barometer': '29.678', 'cloudbase': '5029.702621037409', 'consBatteryVoltage': '5.06', 'dateTime': '1744598420', 'dayET': '0.073', 'dayRain': '0.0', 'dewpoint': '41.3057084674354', 'ET': 'None', 'extraAlarm1': '0', 'extraAlarm2': '0', 'extraAlarm3': '0', 'extraAlarm4': '0', 'extraAlarm5': '0', 'extraAlarm6': '0', 'extraAlarm7': '0', 'extraAlarm8': '0', 'forecastIcon': '3', 'forecastRule': '192', 'heatindex': '58.050000000000004', 'humidex': '60.0', 'inDewpoint': '42.961264259077744', 'inHumidity': '34.0', 'insideAlarm': '0', 'inTemp': '73.0', 'maxSolarRad': '0.0', 'monthET': '0.76', 'monthRain': '0.0', 'outHumidity': '50.0', 'outsideAlarm1': '0', 'outsideAlarm2': '0', 'outTemp': '60.0', 'pressure': '28.855837234414036', 'radiation': '0.0', 'rain': '0.0', 'rainAlarm': '0', 'rainRate': '0.0', 'soilLeafAlarm1': '0', 'soilLeafAlarm2': '0', 'soilLeafAlarm3': '0', 'soilLeafAlarm4': '0', 'stormRain': '0.0', 'sunrise': '1744542780', 'sunset': '1744590660', 'txBatteryStatus': '0', 'usUnits': '1', 'UV': '0.0', 'windchill': '60.0', 'windDir': '43.0', 'windGust': '2.0', 'windGustDir': '38.0', 'windrun': 'None', 'windSpeed': '1.0', 'windSpeed10': '0.0', 'yearET': '4.0', 'yearRain': '2.91'
+weewx-1  | 2025-04-13 21:40:20 weewxd[6]: INFO weewx.imagegenerator: Generated 60 images for report SeasonsReport in 1.70 seconds
+weewx-1  | 2025-04-13 21:40:20 weewxd[6]: INFO weewx.reportengine: Copied 5 files to /data/public_html
+^C
+jkozik@weewx174:~/weewx51/data/public_html$ ls
+celestial.html    daytempdew.png   favicon.ico         monthrain.png      monthwind.png     telemetry.html     weektempdew.png   yearbarometer.png  yeartempfeel.png
+daybarometer.png  daytempfeel.png  font                monthrx.png        monthwindvec.png  weekbarometer.png  weektempfeel.png  yearET.png         yeartempin.png
+dayET.png         daytempin.png    index.html          monthtempdew.png   NOAA              weekET.png         weektempin.png    yearhumin.png      yearUV.png
+dayhumin.png      dayUV.png        monthbarometer.png  monthtempfeel.png  rss.xml           weekhumin.png      weekUV.png        yearhum.png        yearvolt.png
+dayhum.png        dayvolt.png      monthET.png         monthtempin.png    seasons.css       weekhum.png        weekvolt.png      yearradiation.png  yearwinddir.png
+dayradiation.png  daywinddir.png   monthhumin.png      monthUV.png        seasons.js        weekradiation.png  weekwinddir.png   yearrain.png       yearwind.png
+dayrain.png       daywind.png      monthhum.png        monthvolt.png      statistics.html   weekrain.png       weekwind.png      yearrx.png         yearwindvec.png
+dayrx.png         daywindvec.png   monthradiation.png  monthwinddir.png   tabular.html      weekrx.png         weekwindvec.png   yeartempdew.png
+jkozik@weewx174:~/weewx51/data/public_html$
+jkozik@weewx174:~/weewx51/data/public_html$ curl http://192.168.100.174 | head
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+100 24857  100
+2
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>weewx.kozik.net</title>
+    <link rel="icon" type="image/png" href="favicon.ico" />
+    <link rel="stylesheet" type="text/css" href="seasons.css"/>
+4857    0     0  16.8M      0 --:--:-- --:--:-- --:--:-- 23.7M
+curl: Failed writing body
+jkozik@weewx174:~/weewx51/data/public_html$ curl http://192.168.100.174 | head -20
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+
+1
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>weewx.kozik.net</title>
+    <link rel="icon" type="image/png" href="favicon.ico" />
+    <link rel="stylesheet" type="text/css" href="seasons.css"/>
+    <script src="seasons.js"></script>
 
 
+  </head>
+
+  <body onload="setup();">
+
+
+<div id="title_bar">
+  <div id="title">
+00 24857  100 24857    0     0  14.7M      0 --:--:-- --:--:-- --:--:-- 23.7M
+curl: Failed writing body
+jkozik@weewx174:~/weewx51/data/public_html$ curl http://192.168.100.174 | head -30
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>weewx.kozik.net</title>
+    <link rel="icon" type="image/png" href="favicon.ico" />
+    <link rel="stylesheet" type="text/css" href="seasons.css"/>
+    <script src="seasons.js"></script>
+
+
+  </head>
+
+  <body onload="setup();">
+
+
+<div id="title_bar">
+  <div id="title">
+    <h1 class="page_title">weewx.kozik.net</h1>
+    <p class="lastupdate">04/13/25 21:40:00</p>
+  </div>
+  <div id="rss_link"><a href="rss.xml">RSS</a></div>
+  <div id="reports">
+    Monthly Reports:
+    <select name="reports" onchange="openTabularFile(value)">
+      <option value="2025-04">2025-04</option>
+      <option selected>- Select Month -</option>
+    </select>
+```
+## Verify the webpage http://192.168.100.174
+![image](https://github.com/user-attachments/assets/589bfadc-220f-44b5-bcff-bcfba4a7a2ab)
+
+
+
+```
 
 
 
