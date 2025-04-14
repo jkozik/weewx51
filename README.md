@@ -18,25 +18,15 @@ Receiving objects: 100% (3/3), done.
 Make sure some key directories are setup with the correct permissions
 ```
 jkozik@weewx174:~/weewx51$ mkdir -p data data/public_html data/archive
-jkozik@weewx174:~/weewx51$ ls -lasth
-total 24K
-4.0K drwxrwxr-x  3 jkozik jkozik 4.0K Apr 14 19:29 data
-4.0K drwxrwxr-x  4 jkozik jkozik 4.0K Apr 14 19:28 .
-4.0K drwxr-x--- 14 jkozik jkozik 4.0K Apr 14 19:27 ..
-4.0K -rw-rw-r--  1 jkozik jkozik  453 Apr 14 00:10 docker-compose.yml
-4.0K drwxrwxr-x  8 jkozik jkozik 4.0K Apr 14 00:04 .git
-4.0K -rw-rw-r--  1 jkozik jkozik   54 Apr 14 00:04 README.md
-jkozik@weewx174:~/weewx51$ cd -lasth data
--bash: cd: -l: invalid option
-cd: usage: cd [-L|[-P [-e]] [-@]] [dir]
 jkozik@weewx174:~/weewx51$ ls -lasth data
-total 12K
-4.0K drwxrwxr-x 3 jkozik jkozik 4.0K Apr 14 19:29 .
-4.0K drwxrwxr-x 2 jkozik jkozik 4.0K Apr 14 19:29 public_html
-4.0K drwxrwxr-x 4 jkozik jkozik 4.0K Apr 14 19:28 ..
+total 16K
+4.0K drwxrwxr-x 4 jkozik jkozik 4.0K Apr 14 19:45 .
+4.0K drwxrwxr-x 4 jkozik jkozik 4.0K Apr 14 19:45 ..
+4.0K drwxrwxr-x 2 jkozik jkozik 4.0K Apr 14 19:45 archive
+4.0K drwxrwxr-x 2 jkozik jkozik 4.0K Apr 14 19:45 public_html
 jkozik@weewx174:~/weewx51$
 ```
-For some reason, the data and data/public_html directories get created by the image with root:root ownership.  
+For some reason, the data and data/public_html directories get created by the image with root:root ownership.  That will cause the container to silently fail. 
 ## run for the first time
 ```
 jkozik@weewx174:~/weewx51$ docker compose run --rm weewx
