@@ -404,15 +404,6 @@ jkozik@weewx174:~/weewx51/data/public_html$ curl http://192.168.100.174 | head -
 ## Verify the webpage http://192.168.100.174
 ![image](https://github.com/user-attachments/assets/589bfadc-220f-44b5-bcff-bcfba4a7a2ab)
 
-
-
-```
-
-
-
-
-
-
 # References
 - [Weewx5.1 Install using Pip](https://weewx.com/docs/5.1/quickstarts/pip/)
 - [weewx-docker](https://github.com/felddy/weewx-docker) repository by [felddy](https://github.com/felddy)
