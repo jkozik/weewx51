@@ -1,7 +1,7 @@
 # weewx51
 Setup weewx51 in docker compose environment using the image [felddy/weewx](https://hub.docker.com/r/felddy/weewx) created from the [weewx-docker](https://github.com/felddy/weewx-docker) repository by [felddy](https://github.com/felddy).  I had been on weewx 4.5 and have been monitoring weather using weewx since 2018.  As part of this upgrade, I am carrying my data forward to run under 5.1.
 
-![image](https://github.com/user-attachments/assets/a209adda-a06e-4774-a665-8944064caa41)
+![image](https://github.com/user-attachments/assets/7a59fcc1-4043-4aeb-9885-93d29d49d78f)
 
 
 My past weewx servers have been container based and felddy's appears to be one of the most current ones based on a pip install python installation.  
