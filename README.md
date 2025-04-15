@@ -462,3 +462,6 @@ Here's an example screen capture of weewx.sdb
 # References
 - [Weewx5.1 Install using Pip](https://weewx.com/docs/5.1/quickstarts/pip/)
 - [weewx-docker](https://github.com/felddy/weewx-docker) repository by [felddy](https://github.com/felddy)
+- [docker-weewx]{https://github.com/jgoerzen/docker-weewx) Weewx repository by [jgoerzen](https://github.com/jgoerzen)
+- [Weewx weather software](https://github.com/weewx) main repository for Weewx
+- [docker-weewx](https://github.com/tomdotorg/docker-weewx) weewx repository by [tomedotorg](https://github.com/tomdotorg)
