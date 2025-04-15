@@ -419,6 +419,46 @@ jkozik@weewx174:~/weewx51/data/public_html$ curl http://192.168.100.174 | head -
 ## Verify the webpage http://192.168.100.174
 ![image](https://github.com/user-attachments/assets/589bfadc-220f-44b5-bcff-bcfba4a7a2ab)
 
+# SQLite Browser 
+Just to help with troubleshooting, I found [sqlitebrowser](https://docs.linuxserver.io/images/docker-sqlitebrowser/) a useful tool.  It is easy to setup and can help verify the basic sanity of the weewx service.  
+```
+jkozik@weewx174:~/weewx51$ docker run -d \
+  --name=sqlitebrowser \
+  --security-opt seccomp=unconfined `#optional` \
+  -e PUID=1000 \
+  -e PGID=1000 \
+  -e TZ=Etc/UTC \
+  -p 3000:3000 \
+  -p 3001:3001 \
+  -v /home/jkozik:/config \
+  --restart unless-stopped \
+  lscr.io/linuxserver/sqlitebrowser:latest
+Unable to find image 'lscr.io/linuxserver/sqlitebrowser:latest' locally
+latest: Pulling from linuxserver/sqlitebrowser
+ca35b17ee81d: Pull complete
+e1cde46db0e1: Pull complete
+b8c70ea78f9e: Pull complete
+9c32b4f11ef6: Pull complete
+f10d09f71b71: Pull complete
+668228550b94: Pull complete
+4f305225fd4d: Pull complete
+47b26b9c3ad0: Pull complete
+f10256838c1b: Pull complete
+d2e8b2d7b0d0: Pull complete
+f05fa23e5447: Pull complete
+37594cfbb144: Pull complete
+71cfb497acb3: Pull complete
+Digest: sha256:17fe598bc4a30f4429f3f523457c1a5026d847508481ca3b729470502c26e6e0
+Status: Downloaded newer image for lscr.io/linuxserver/sqlitebrowser:latest
+5c1d65b75a84741ce949504c1ee2bce4a983eb3908d6616f73da91edbd8bfff6
+jkozik@weewx174:~/weewx51$ 
+```
+It sets up a server on port 3000 that lets you open a weewx.sdb
+
+Here's an example screen capture of weewx.sdb
+![image](https://github.com/user-attachments/assets/3d0d94de-4d16-409c-adfb-12fcf90527be)
+
+
 # References
 - [Weewx5.1 Install using Pip](https://weewx.com/docs/5.1/quickstarts/pip/)
 - [weewx-docker](https://github.com/felddy/weewx-docker) repository by [felddy](https://github.com/felddy)
