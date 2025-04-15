@@ -1,0 +1,26 @@
+---
+name: "weewx"
+
+volumes:
+  data:
+
+services:
+  weewx:
+    image: felddy/weewx:5.1
+    restart: unless-stopped
+    # devices:
+    #   - "/dev/ttyUSB0:/dev/ttyUSB0"
+    volumes:
+      - type: bind
+        source: ./data
+        target: /data
+    environment:
+      - TZ=America/Chicago
+  nginx:
+    image: nginx
+    restart: unless-stopped
+    container_name: nginx
+    ports:
+      - 80:80
+    volumes:
+      - ./data/public_html:/usr/share/nginx/html
