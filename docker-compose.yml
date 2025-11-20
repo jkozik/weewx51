@@ -7,6 +7,7 @@ volumes:
 services:
   weewx:
     image: felddy/weewx:5.1
+    container_name: weewx
     restart: unless-stopped
     # devices:
     #   - "/dev/ttyUSB0:/dev/ttyUSB0"
@@ -16,11 +17,54 @@ services:
         target: /data
     environment:
       - TZ=America/Chicago
+
+    # Health check: Verify weewx is generating fresh data
+    healthcheck:
+      test: ["CMD-SHELL", "find /data/public_html -name '*.png' -mmin -15 | grep -q . || exit 1"]
+      interval: 5m
+      timeout: 10s
+      retries: 3
+      start_period: 10m  # Allow 2 full archive cycles on fresh install
+
+    # Resource limits (based on measured usage: ~42MB RAM, ~0% CPU)
+    # Limits provide 6x headroom for memory, generous CPU allowance
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+
   nginx:
-    image: nginx
-    restart: unless-stopped
+    image: nginx:1.27-alpine
     container_name: nginx
+    restart: unless-stopped
     ports:
       - 80:80
     volumes:
-      - ./data/public_html:/usr/share/nginx/html
+      - ./data/public_html:/usr/share/nginx/html:ro
+
+    # Health check: Verify nginx is responding to HTTP requests
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+    # Resource limits (based on measured usage: ~13MB RAM, ~0% CPU)
+    # Limits provide 5x headroom for memory, generous CPU allowance
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 64M
+        reservations:
+          cpus: '0.05'
+          memory: 16M
+
+    depends_on:
+      weewx:
+        condition: service_started
