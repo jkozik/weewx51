@@ -1,2 +1,9 @@
-data/
+data/archive/
+data/public_html/
+data/bin/
+data/examples/
+data/scripts/
+data/util/
+data/weewx.conf.2*
 *.swp
+*.log
