@@ -1,0 +1,68 @@
+#errorCatcher Echo
+
+<!--prettier-ignore-->
+#encoding UTF-8
+#attr $context = 'year'
+#attr $use_parameter_year = True
+#attr $use_parameter_month = False
+#set $NOAA_PATH = "NOAA/NOAA-" + $year.start.format('%Y') + ".txt"
+
+<!DOCTYPE html>
+<html lang="$lang">
+  <head>
+    #include "includes/html-head.inc"
+    <title>$station.location - $gettext("Yearly Weather Conditions")</title>
+  </head>
+
+  <body class="theme-$DisplayOptions.get('layout', 'alternative')">
+    #include "includes/ui-shell.inc"
+
+    <main class="main bx--content">
+      <section>
+        <div class="bx--grid bx--grid--full-width">
+          <div class="bx--row">
+            <header class="bx--col page-header">
+              <h1>$gettext("Yearly Weather Conditions")</h1>
+              <h2>$year_name</h2>
+              <h3>
+                <a
+                  class="noaa-report-link"
+                  target="_blank"
+                  href="$get_base_path(path=$NOAA_PATH)"
+                >
+                  NOAA Report
+                </a>
+              </h3>
+            </header>
+          </div>
+
+          <!--prettier-ignore-->
+          #if len($DisplayOptions.get('climatological_days', [])) > 0
+          <div class="bx--row">
+            <div class="bx--col">
+              <!--prettier-ignore-->
+              #include "includes/climatological-days.inc"
+            </div>
+          </div>
+          #end if
+
+          <!--prettier-ignore-->
+          #if $DisplayOptions.get('layout', 'alternative') == 'alternative'
+            #include 'includes/body-alternative.inc'
+          #else
+            #include 'includes/body-classic.inc'
+          #end if
+        </div>
+      </section>
+    </main>
+
+    <!--Stat tile Modals-->
+    #if $DisplayOptions.get('layout', 'alternative') == 'alternative'
+      #include "includes/stat-tile-modals.inc"
+    #end if
+
+    #include "includes/footer.inc"
+
+    <script src="$get_base_path(path='dist/main.js')" defer></script>
+  </body>
+</html>
