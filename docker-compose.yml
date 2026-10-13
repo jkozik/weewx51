@@ -26,12 +26,22 @@ services:
       retries: 3
       start_period: 10m  # Allow 2 full archive cycles on fresh install
 
+    # Cap container logs (weewx StdPrint writes every LOOP packet to stdout;
+    # unlimited json logs grew to 18G and filled / in Oct 2026)
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
     # Resource limits (based on measured usage: ~42MB RAM, ~0% CPU)
     # Limits provide 6x headroom for memory, generous CPU allowance
+    # CPU raised 0.5 -> 1.5: with Seasons+WDC+Belchertown, report generation
+    # pegged at 0.5 CPU and fell behind the 10-min archive interval
     deploy:
       resources:
         limits:
-          cpus: '0.5'
+          cpus: '1.5'
           memory: 256M
         reservations:
           cpus: '0.1'
@@ -53,6 +63,14 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+
+    # Cap container logs (weewx StdPrint writes every LOOP packet to stdout;
+    # unlimited json logs grew to 18G and filled / in Oct 2026)
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
     # Resource limits (based on measured usage: ~13MB RAM, ~0% CPU)
     # Limits provide 5x headroom for memory, generous CPU allowance
