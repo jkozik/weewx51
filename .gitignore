@@ -7,3 +7,6 @@ data/util/
 data/weewx.conf.2*
 *.swp
 *.log
+# Local backup copies (old ones contain FTP credentials; repo is public)
+*.pre-*
+*.backup
