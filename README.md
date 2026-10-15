@@ -419,6 +419,12 @@ jkozik@weewx174:~/weewx51/data/public_html$ curl http://192.168.100.174 | head -
 ## Verify the webpage http://192.168.100.174
 ![image](https://github.com/user-attachments/assets/589bfadc-220f-44b5-bcff-bcfba4a7a2ab)
 
+# Local customizations
+The main website uses `data/skins/SeasonsKozik`, a renamed copy of the stock `Seasons` skin (`weewx.conf`: `[[SeasonsReport]] skin = SeasonsKozik`). weewx recommends customizing a renamed copy because `weectl station upgrade` only replaces stock-named skins, so local changes survive upgrades. The stock `Seasons` folder is kept unmodified for reference.
+
+Changes in `SeasonsKozik` (search for `LOCAL CHANGE`):
+- `titlebar.inc`: a green **● Live** / red **● Stale** indicator under the "last updated" time. The browser compares the latest record time with its own clock every minute, so it turns red if nginx keeps serving the page after the data feed has stopped. "Stale" means older than 2 archive intervals plus 5 minutes (25 minutes here).
+
 # SQLite Browser 
 Just to help with troubleshooting, I found [sqlitebrowser](https://docs.linuxserver.io/images/docker-sqlitebrowser/) a useful tool.  It is easy to setup and can help verify the basic sanity of the weewx service.  
 ```
