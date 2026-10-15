@@ -15,15 +15,19 @@
 ## latest record time with its own clock, so a stale page served by a healthy
 ## nginx still shows red. Leave the lastupdate line above unchanged: Zabbix
 ## weewx_website_health.sh parses it.
-    <p class="lastupdate" id="freshness" data-ts="$current.dateTime.raw" data-interval="$current.interval.raw"></p>
+## The dot is HTML, not JavaScript: the skin's html_entities encoding turns
+## non-ASCII characters into entities, which textContent would show literally.
+    <p class="lastupdate" id="freshness" data-ts="$current.dateTime.raw" data-interval="$current.interval.raw" style="visibility: hidden">&#9679; <span id="freshness_text"></span></p>
     <script>
       (function () {
         var e = document.getElementById('freshness');
+        var t = document.getElementById('freshness_text');
         var ts = +e.dataset.ts, iv = (+e.dataset.interval || 10) * 60;
         function check() {
           var age = Date.now() / 1000 - ts, ok = age < 2 * iv + 300;
           e.style.color = ok ? 'rgb(46,125,50)' : 'rgb(198,40,40)';
-          e.textContent = (ok ? '● Live' : '● Stale') + ' (data ' + Math.round(age / 60) + ' min old)';
+          t.textContent = (ok ? 'Live' : 'Stale') + ' (data ' + Math.round(age / 60) + ' min old)';
+          e.style.visibility = 'visible';
         }
         check(); setInterval(check, 60000);
       })();
